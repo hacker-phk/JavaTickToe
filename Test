@@ -1,0 +1,177 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Scanner;
+
+public class Test {
+    private static final int SIZE = 3; // Size of the Tic-Tac-Toe board
+    private static final int BUTTON_SIZE = 100; // Button size in pixels
+    private static final Color INITIAL_BUTTON_COLOR = new Color(10, 20, 50);
+    private JButton[][] buttons; // 2D array to represent the buttons
+    private char currentPlayer = 'X'; // Player X starts
+    static public int val = 0;
+
+    public Test() {
+        JFrame frame = new JFrame("Tic-Tac-Toe");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        // JLabel l = new JLabel("Tick Tock Toe", 25);
+        // l.add(frame, BUTTON_SIZE);
+        JPanel container = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.CENTER;
+
+        JPanel panel = new JPanel(new GridLayout(SIZE, SIZE));
+        buttons = new JButton[SIZE][SIZE];
+
+        for (int row = 0; row < SIZE; row++) {
+            for (int col = 0; col < SIZE; col++) {
+                buttons[row][col] = new JButton("");
+                buttons[row][col].setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE));
+                buttons[row][col].setFont(new Font("Arial", Font.PLAIN, 40));
+                buttons[row][col].setFocusPainted(false); // Remove button border on click
+                buttons[row][col].setBackground(INITIAL_BUTTON_COLOR);
+                buttons[row][col].addActionListener(new ButtonClickListener(row, col));
+                panel.add(buttons[row][col]);
+            }
+        }
+
+        container.add(panel, gbc);
+
+        frame.add(container);
+        frame.pack();
+        frame.setSize(BUTTON_SIZE * SIZE, BUTTON_SIZE * SIZE);
+        frame.setLocationRelativeTo(null); // Center the frame on the screen
+        frame.setVisible(true);
+    }
+
+    private class ButtonClickListener implements ActionListener {
+        private final int row;
+        private final int col;
+
+        public ButtonClickListener(int row, int col) {
+            this.row = row;
+            this.col = col;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (buttons[row][col].getText().isEmpty()) {
+                buttons[row][col].setText(String.valueOf(currentPlayer));
+                buttons[row][col].setEnabled(false);
+                if (checkWin(row, col)) {
+                    highlightWinningButtons();
+                    JOptionPane.showMessageDialog(null, "Player " + (currentPlayer == 'X' ? "A" : "B") + " wins!");
+                    resetBoard();
+                    ask();
+                } else if (isBoardFull()) {
+                    JOptionPane.showMessageDialog(null, "It's a draw!");
+                    resetBoard();
+                    ask();
+                } else {
+                    currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
+                }
+            }
+        }
+
+        private void highlightWinningButtons() {
+            // Check rows, columns, and diagonals for a win and highlight the winning
+            // buttons
+            if (checkRow(row) || checkColumn(col) || checkDiagonals()) {
+                for (int i = 0; i < SIZE; i++) {
+                    for (int j = 0; j < SIZE; j++) {
+                        if (checkRow(row) && i == row) {
+                            buttons[i][j].setBackground(Color.GREEN);
+                        } else if (checkColumn(col) && j == col) {
+                            buttons[i][j].setBackground(Color.GREEN);
+                        } else if (checkDiagonals() && (row == col || row + col == SIZE - 1)) {
+                            buttons[i][j].setBackground(Color.GREEN);
+                        } else {
+                            buttons[i][j].setEnabled(false);
+                        }
+                    }
+                }
+            }
+        }
+
+        private boolean checkWin(int row, int col) {
+            // Check rows, columns, and diagonals for a win
+            if (checkRow(row) || checkColumn(col) || checkDiagonals()) {
+
+                return true;
+            }
+            return false;
+        }
+
+        private boolean checkRow(int row) {
+            return buttons[row][0].getText().equals(buttons[row][1].getText()) &&
+                    buttons[row][0].getText().equals(buttons[row][2].getText()) &&
+                    !buttons[row][0].getText().isEmpty();
+        }
+
+        private boolean checkColumn(int col) {
+            return buttons[0][col].getText().equals(buttons[1][col].getText()) &&
+                    buttons[0][col].getText().equals(buttons[2][col].getText()) &&
+                    !buttons[0][col].getText().isEmpty();
+        }
+
+        private boolean checkDiagonals() {
+            return (buttons[0][0].getText().equals(buttons[1][1].getText()) &&
+                    buttons[0][0].getText().equals(buttons[2][2].getText()) &&
+                    !buttons[0][0].getText().isEmpty()) ||
+                    (buttons[0][2].getText().equals(buttons[1][1].getText()) &&
+                            buttons[0][2].getText().equals(buttons[2][0].getText()) &&
+                            !buttons[0][2].getText().isEmpty());
+        }
+
+        private boolean isBoardFull() {
+            for (int row = 0; row < SIZE; row++) {
+                for (int col = 0; col < SIZE; col++) {
+                    if (buttons[row][col].getText().isEmpty()) {
+                        return false;
+                    }
+                }
+            }
+            System.out.println("Hello");
+
+            return true;
+        }
+
+        private static void ask() {
+            int option = JOptionPane.showConfirmDialog(null, "Do you want to play another game?", "Play Again",
+                    JOptionPane.YES_NO_OPTION);
+            if (option == JOptionPane.NO_OPTION) {
+                System.exit(0); // Exit the application
+            }
+            val = 1;
+
+        }
+
+        private void resetBoard() {
+            for (int row = 0; row < SIZE; row++) {
+                for (int col = 0; col < SIZE; col++) {
+                    buttons[row][col].setText("");
+                    buttons[row][col].setEnabled(true);
+                    buttons[row][col].setBackground(INITIAL_BUTTON_COLOR); // Reset background color
+                }
+            }
+            currentPlayer = 'X';
+        }
+    }
+
+    public static void main(String[] args) {
+        int flag = 1;
+        while (flag == 1) {
+            flag = 0;
+            SwingUtilities.invokeLater(() -> {
+                new Test();
+            });
+            flag = val;
+        }
+        System.out.println("Thanks For playing");
+    }
+}
